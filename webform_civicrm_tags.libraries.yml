@@ -6,4 +6,4 @@ select_tree:
   js:
     js/select2.js: {}
     js/select2totree.js: {}
-    js/webform_civicrm_select_tree.js: {}
+    js/webform_civicrm_tags.js: {}

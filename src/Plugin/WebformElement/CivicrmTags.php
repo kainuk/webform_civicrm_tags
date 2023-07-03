@@ -89,7 +89,7 @@ class CivicrmTags extends OptionsBase {
       '#default_value' => $element_properties['extra']['multiple'] ?? FALSE,
       '#parents' => ['properties', 'extra', 'multiple'],
     ];
-    $form['#attached']['library'][] = 'webform_civicrm/select_tree';
+    $form['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
     $form['#attached']['drupalSettings']['alltags'] =$this->rootTags($element_properties['root_tags']);
     return $form;
   }
@@ -135,7 +135,7 @@ class CivicrmTags extends OptionsBase {
     if ($is_multiple) {
       $element['#multiple'] = TRUE;
     }
-    $element['#attached']['library'][] = 'webform_civicrm/select_tree';
+    $element['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
     $element['#attached']['drupalSettings']['alltags'] =$this->rootTags([]);
     parent::prepare($element, $webform_submission);
   }
