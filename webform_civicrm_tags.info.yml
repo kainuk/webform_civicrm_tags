@@ -1,0 +1,8 @@
+name: 'Webform CiviCRM Tags'
+type: module
+description: 'Adds a tree select to replace the standard CiviCRM tags'
+core: 8.x
+core_version_requirement: ^8 || ^9
+package: 'CiviCRM'
+dependencies:
+  - webform_civicrm

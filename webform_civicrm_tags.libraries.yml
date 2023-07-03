@@ -1,0 +1,9 @@
+select_tree:
+  css:
+    component:
+      css/select2.css: {}
+      css/select2totree.css: {}
+  js:
+    js/select2.js: {}
+    js/select2totree.js: {}
+    js/webform_civicrm_select_tree.js: {}
