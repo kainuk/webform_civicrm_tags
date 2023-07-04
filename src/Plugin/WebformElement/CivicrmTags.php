@@ -130,7 +130,7 @@ class CivicrmTags extends OptionsBase {
     }
 
     $element['#type'] = 'select';
-    $element['#template'] = 'webform_civicrm_tags';
+    $element['#theme'] = 'select2tree';
     $element['#options'] = [];
     if ($is_multiple) {
       $element['#multiple'] = TRUE;
@@ -253,7 +253,7 @@ class CivicrmTags extends OptionsBase {
     ]);
     $tags = [];
     foreach($result['values'] as $key => $value){
-      $tags[] = ['id' => (int) $value['id'], 'text' => $value['name'], 'parent_id' => $value['parent_id']];
+      $tags[] = ['id' => (int) $value['id'], 'text' => $value['name'], 'parent_id' => ($value['parent_id'] ?? FALSE)];
     }
     $parents = [];
     foreach($tags as $key => $tag){

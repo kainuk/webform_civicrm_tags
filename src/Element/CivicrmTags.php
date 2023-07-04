@@ -19,14 +19,14 @@ class CivicrmTags extends  Textfield  {
     $class = get_class($this);
     $info = parent::getInfo();
     $info['#pre_render'][] = [$class, 'preRenderTags'];
-    $info['#theme'] = 'select';
-    //$info['#theme_wrappers'] = 'form_element';
+    $info['#theme'] = 'selecttree';
+    $info['#theme_wrappers'] = ['form_element'];
     //$info['#process'] []= [$class, 'removeOptions'];
     return $info;
   }
 
   public static function preRenderTags($element) {
-
+    $a=3;
   }
 
 
