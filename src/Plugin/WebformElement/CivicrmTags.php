@@ -132,12 +132,16 @@ class CivicrmTags extends OptionsBase {
 
     $element['#type'] = 'select';
     $element['#theme'] = 'select2tree';
-    $element['#options'] = [];
+    $allowedTagsFlatten = $this->allowedTagsFlatten($this->allowedTags($element['#root_tags'], []));
+
+    $element['#options'] = $allowedTagsFlatten;
     if ($is_multiple) {
       $element['#multiple'] = TRUE;
     }
     $element['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
-    $element['#attached']['drupalSettings']['allowedtags'] = $this->allowedTags($element['#root_tags'],[]);
+    $defaults = $this->findContactTags($this->findCurrentContact());
+    $defaults = array_intersect($defaults,$allowedTagsFlatten);
+    $element['#attached']['drupalSettings']['allowedtags'] = $this->allowedTags($element['#root_tags'],$defaults);
     $element['#attached']['drupalSettings']['allowedtagsform_key'] = $element['#form_key'];
     $element['#attributes']['select2tree']=$element['#form_key'];
     parent::prepare($element, $webform_submission);
@@ -350,18 +354,75 @@ class CivicrmTags extends OptionsBase {
     }
   }
 
-  protected function findContact() {
-      $query = \Drupal::request()->query;
-      if ($query->has("cid1") || ($query->has('cid'))) {
-        $cid = $query->has("cid1") ? $query->get("cid1") : $query->get('cid');
-        return $cid;
-      } else {
-        return false;
-      }
+  protected function findCurrentContact(){
+    $query = \Drupal::request()->query;
+    $cid=false;
+    if ($query->has("cid1") || ($query->has('cid'))) {
+      $cid = $query->has("cid1") ? $query->get("cid1") : $query->get('cid');
+    }
+    return $cid;
+  }
+
+  protected function findContactTags($cid) {
+    $contactTags = [];
+
+    $result = \Drupal::service('webform_civicrm.utils')
+      ->wf_civicrm_api('EntityTag', 'get', [
+        "entity_id" => $cid,
+        "entity_table" => "civicrm_contact",
+        'options' => ['limit' => 0],
+      ]);
+    foreach ($result['values'] as $value) {
+      $contactTags[] = $value['tag_id'];
+    }
+    return $contactTags;
   }
 
   public function postSave(array &$element, WebformSubmissionInterface $webform_submission, $update = TRUE) {
-    $a=3;
+    $contact_id = $webform_submission->getElementData('civicrm_1_contact_1_contact_existing');
+    $storedtags = $this->findContactTags($contact_id);
+    // findall storedtags
+    $storedtags = array_intersect($storedtags,$this->allowedTagsFlatten($this->allowedTags($element['#root_tags'],[])));
+
+    // filter on allowag then we have all stored allowd tags
+    $newtags = array_diff($webform_submission->getElementData($element['#form_key']),$storedtags);
+
+    foreach($newtags as $tagId){
+      $result = \Drupal::service('webform_civicrm.utils')
+        ->wf_civicrm_api('EntityTag', 'create', [
+        'entity_id' =>    $contact_id ,
+        'tag_id' => $tagId,
+        'entity_table' => "civicrm_contact",
+      ]);
+    }
+
+    // new tags are the tags in this element that are in the storedallowed tags.
+    $obsoletetags =  array_diff($storedtags,$webform_submission->getElementData($element['#form_key']));
+    foreach($obsoletetags as $tagId){
+      $result = \Drupal::service('webform_civicrm.utils')
+        ->wf_civicrm_api('EntityTag', 'delete', [
+        'entity_id' =>    $contact_id ,
+        'tag_id' => $tagId,
+        'entity_table' => "civicrm_contact",
+      ]);
+    }
+
+    // store the new tags
+
+    // delete the obsolete tags
+
+  }
+
+  private function allowedTagsFlatten($allowodTags){
+    $options = [];
+    foreach($allowodTags as $value){
+      $options[$value['id']]=$value['id'];
+      if(isset($value['inc'])){
+        $inc = $this->allowedTagsFlatten($value['inc']);
+        $options = $options+$inc;
+      }
+    }
+    return $options;
   }
 
 }
