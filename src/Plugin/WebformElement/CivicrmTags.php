@@ -69,6 +69,7 @@ class CivicrmTags extends OptionsBase {
 
     $form['options']['root_tags'] = [
        '#type' => 'select',
+       '#theme' => 'select2tree',
        '#title' => $this->t('Root Tags'),
        '#multiple' => true,
        '#options' => $this->tags(),
@@ -136,7 +137,9 @@ class CivicrmTags extends OptionsBase {
       $element['#multiple'] = TRUE;
     }
     $element['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
-    $element['#attached']['drupalSettings']['alltags'] =$this->rootTags([]);
+    $element['#attached']['drupalSettings']['allowedtags'] = $this->allowedTags($element['#root_tags'],[]);
+    $element['#attached']['drupalSettings']['allowedtagsform_key'] = $element['#form_key'];
+    $element['#attributes']['select2tree']=$element['#form_key'];
     parent::prepare($element, $webform_submission);
   }
 
@@ -242,10 +245,11 @@ class CivicrmTags extends OptionsBase {
     }
   }
 
-  public function postSave(array &$element, WebformSubmissionInterface $webform_submission, $update = TRUE){
-    $a=3;
-  }
-
+  /**
+   * @param array $defaults
+   *
+   * @return array
+   */
   private function rootTags(array $defaults) {
     $result = \Drupal::service('webform_civicrm.utils')-> wf_civicrm_api('Tag','get',[
       'used_for' => 'civicrm_contact',
@@ -273,6 +277,37 @@ class CivicrmTags extends OptionsBase {
     return $parents;
   }
 
+  private function allowedTags(array $allowed, array $defaults) {
+    $result = \Drupal::service('webform_civicrm.utils')-> wf_civicrm_api('Tag','get',[
+      'used_for' => 'civicrm_contact',
+      'options' => ['limit' => 0]
+    ]);
+    $tags = [];
+    foreach($result['values'] as $key => $value){
+      $tags[] = ['id' => (int) $value['id'], 'text' => $value['name'], 'parent_id' => ($value['parent_id'] ?? FALSE)];
+    }
+    $at = [];
+    foreach($tags as $key => $tag){
+      if(in_array($tag['id'],$allowed)){
+        $allowedTag= [
+          'id' => $tag['id'],
+          'text' => $tag['text']
+        ];
+        if (in_array($tag['id'],$defaults)){
+          $allowedTag['selected'] = "true";
+        }
+        $at[]=$allowedTag;
+      }
+    }
+    foreach($at as $key => $parent){
+      $this->expand($at[$key],$tags,$defaults);
+    }
+    return $at;
+  }
+
+  /**
+   * @return array
+   */
   private function tags() {
     $result = \Drupal::service('webform_civicrm.utils')
       ->wf_civicrm_api('Tag', 'get', [
@@ -286,7 +321,14 @@ class CivicrmTags extends OptionsBase {
     return $tags;
   }
 
-  private function expand(&$parent,$tags,$defaults){
+  /**
+   * @param $parent
+   * @param $tags
+   * @param $defaults
+   *
+   * @return void
+   */
+  private function expand(&$parent, $tags, $defaults){
     $children = [];
     foreach($tags as $key=> $tag){
       if(!empty($tag['parent_id']) && $tag['parent_id']==$parent['id']){
@@ -306,6 +348,20 @@ class CivicrmTags extends OptionsBase {
     if(count($children)>0) {
       $parent['inc'] = $children;
     }
+  }
+
+  protected function findContact() {
+      $query = \Drupal::request()->query;
+      if ($query->has("cid1") || ($query->has('cid'))) {
+        $cid = $query->has("cid1") ? $query->get("cid1") : $query->get('cid');
+        return $cid;
+      } else {
+        return false;
+      }
+  }
+
+  public function postSave(array &$element, WebformSubmissionInterface $webform_submission, $update = TRUE) {
+    $a=3;
   }
 
 }
