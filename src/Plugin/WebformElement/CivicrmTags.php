@@ -356,11 +356,13 @@ class CivicrmTags extends OptionsBase {
 
   protected function findCurrentContact(){
     $query = \Drupal::request()->query;
-    $cid=false;
     if ($query->has("cid1") || ($query->has('cid'))) {
       $cid = $query->has("cid1") ? $query->get("cid1") : $query->get('cid');
+      return $cid;
+    } else {
+      $cid = \Drupal::service('webform_civicrm.utils')->wf_crm_user_cid();
+      return $cid;
     }
-    return $cid;
   }
 
   protected function findContactTags($cid) {
