@@ -356,12 +356,19 @@ class CivicrmTags extends OptionsBase {
 
   protected function findCurrentContact(){
     $query = \Drupal::request()->query;
-    if ($query->has("cid1") || ($query->has('cid'))) {
-      $cid = $query->has("cid1") ? $query->get("cid1") : $query->get('cid');
+    if ($query->has("cid2") || ($query->has('cid'))) {
+      $cid = $query->has("cid2") ? $query->get("cid2") : $query->get('cid');
       return $cid;
     } else {
       $cid = \Drupal::service('webform_civicrm.utils')->wf_crm_user_cid();
-      return $cid;
+      $contacts = \Civi\Api4\Contact::get()
+                                    ->addSelect('employer_id')
+                                    ->addWhere('id', '=', $cid)
+                                    ->execute();
+      foreach ($contacts as $contact) {
+        $cid_e = $contact['employer_id'];
+      }
+      return $cid_e;
     }
   }
 
@@ -381,7 +388,7 @@ class CivicrmTags extends OptionsBase {
   }
 
   public function postSave(array &$element, WebformSubmissionInterface $webform_submission, $update = TRUE) {
-    $contact_id = $webform_submission->getElementData('civicrm_1_contact_1_contact_existing');
+    $contact_id = $webform_submission->getElementData('civicrm_2_contact_1_contact_existing');
     $storedtags = $this->findContactTags($contact_id);
     // findall storedtags
     $storedtags = array_intersect($storedtags,$this->allowedTagsFlatten($this->allowedTags($element['#root_tags'],[])));
