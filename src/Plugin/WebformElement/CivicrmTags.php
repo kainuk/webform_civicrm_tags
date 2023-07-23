@@ -73,6 +73,7 @@ class CivicrmTags extends OptionsBase {
        '#title' => $this->t('Root Tags'),
        '#multiple' => true,
        '#options' => $this->tags(),
+       '#attributes' => ['select2tree' =>  $element_properties['form_key']]
     ];
 
     $form['extra'] = [
@@ -90,8 +91,8 @@ class CivicrmTags extends OptionsBase {
       '#default_value' => $element_properties['extra']['multiple'] ?? FALSE,
       '#parents' => ['properties', 'extra', 'multiple'],
     ];
-    $form['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
-    $form['#attached']['drupalSettings']['alltags'] =$this->rootTags($element_properties['root_tags']);
+    $form['options']['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
+    $form['options']['#attached']['drupalSettings']['allowedtags'][$element_properties['form_key']] =$this->rootTags($element_properties['root_tags']);
     return $form;
   }
 
@@ -141,8 +142,7 @@ class CivicrmTags extends OptionsBase {
     $element['#attached']['library'][] = 'webform_civicrm_tags/select_tree';
     $defaults = $this->findContactTags($this->findCurrentContact());
     $defaults = array_intersect($defaults,$allowedTagsFlatten);
-    $element['#attached']['drupalSettings']['allowedtags'] = $this->allowedTags($element['#root_tags'],$defaults);
-    $element['#attached']['drupalSettings']['allowedtagsform_key'] = $element['#form_key'];
+    $element['#attached']['drupalSettings']['allowedtags'][$element['#form_key']] = $this->allowedTags($element['#root_tags'],$defaults);
     $element['#attributes']['select2tree']=$element['#form_key'];
     parent::prepare($element, $webform_submission);
   }
