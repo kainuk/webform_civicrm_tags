@@ -20,7 +20,7 @@ use Drupal\webform\WebformSubmissionInterface;
  *   id = "civicrm_tags",
  *   label = @Translation("CiviCRM Tags"),
  *   description = @Translation("Provides a CiviCRM powered tags."),
- *   category = @Translation("CiviCRM"),
+ *   category = @Translation("Options elements"),
  * )
  *
  * @see \Drupal\webform_example_element\Element\WebformExampleElement
