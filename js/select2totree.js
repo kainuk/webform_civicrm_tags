@@ -105,6 +105,8 @@
         }
         if (data[treeData.selFld || "selected"] && String(data[treeData.selFld || "selected"]) === "true") {
           $opt.prop("selected", data[treeData.selFld || "selected"]);
+        } else {
+          $opt.prop("selected", false );
         }
         if($opt.val() === "") {
           $opt.prop("disabled", true);
